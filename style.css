@@ -1,55 +1,122 @@
 :root {
-    --bg: #0b0f19;
-    --card: #161b2a;
-    --accent: #c9a050; /* Gold */
+    --bg: #0a0a0b;
+    --card: #161618;
+    --accent: #d4af37; /* Gold color */
     --text: #ffffff;
+    --text-dim: #a1a1aa;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-    background: var(--bg);
+    background-color: var(--bg);
     color: var(--text);
-    font-family: -apple-system, system-ui, sans-serif;
-    margin: 0;
-    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
 }
 
-.page { padding: 25px; height: 100vh; box-sizing: border-box; }
-.hidden { display: none; }
+#app {
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+    position: relative;
+}
 
-.home-header { text-align: center; padding: 60px 0; }
-#main-clock { font-size: 4.5rem; margin: 0; color: var(--accent); }
+/* THE FIX: This ensures anything with "hidden" class is truly invisible */
+.hidden {
+    display: none !important;
+}
 
-.menu-lines { background: var(--card); border-radius: 20px; overflow: hidden; }
-.line-item {
-    padding: 22px;
+/* Home Screen Styles */
+.clock-section {
+    text-align: center;
+    margin-top: 60px;
+    margin-bottom: 40px;
+}
+
+#main-clock {
+    font-size: 4rem;
+    font-weight: 200;
+    color: var(--accent);
+}
+
+#main-date {
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+/* Menu Buttons (Tiling) */
+.menu-grid {
     display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.menu-item {
+    background: var(--card);
+    padding: 25px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #2d3748;
+    cursor: pointer;
+    border: 1px solid #27272a;
+    transition: transform 0.2s;
+}
+
+.menu-item:active {
+    transform: scale(0.98);
+}
+
+/* List Items for Prayer Times */
+.line-item {
+    background: var(--card);
+    padding: 20px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+}
+
+/* Back Button */
+.back-btn {
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: inline-block;
     cursor: pointer;
 }
 
-.line-item .text { flex-grow: 1; font-weight: 500; font-size: 1.1rem; }
-.icon { margin-right: 15px; font-size: 1.4rem; }
-.arrow { color: #4a5568; }
-
-.header-bar { display: flex; align-items: center; margin-bottom: 30px; }
-.header-bar button { background: none; border: none; color: var(--accent); font-size: 1.1rem; }
-
-.settings-box { text-align: center; background: var(--card); padding: 30px; border-radius: 20px; }
-input[type=range] { width: 100%; accent-color: var(--accent); }
-
+/* Lock Overlay - Only shows when it's time to pray */
 .lock-overlay {
-    position: fixed; inset: 0; z-index: 9999;
-    background: rgba(11, 15, 25, 0.95);
-    backdrop-filter: blur(10px);
-    display: flex; align-items: center; justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
-.lock-wrap { text-align: center; }
-.pulse-icon { font-size: 4rem; animation: pulse 2s infinite; margin-top: 20px; }
+.lock-time {
+    font-size: 5rem;
+    color: var(--accent);
+}
 
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
+.lock-label {
+    letter-spacing: 5px;
+    margin: 20px 0;
+    color: var(--text);
 }
