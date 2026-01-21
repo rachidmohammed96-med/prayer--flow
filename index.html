@@ -16,16 +16,13 @@
 
             <div class="menu-grid">
                 <div class="menu-item" onclick="showPage('prayerTimesPage')">
-                    <span class="text">🕌 Prayer Times</span>
-                    <span class="icon">➔</span>
+                    <span>🕌 Prayer Times</span><span>➔</span>
                 </div>
                 <div class="menu-item" onclick="showPage('adhanLibraryPage')">
-                    <span class="text">📢 Adhan Library</span>
-                    <span class="icon">➔</span>
+                    <span>📢 Adhan Library</span><span>➔</span>
                 </div>
                 <div class="menu-item" onclick="showPage('settingsPage')">
-                    <span class="text">⚙️ Lock Settings</span>
-                    <span class="icon">➔</span>
+                    <span>⚙️ Lock Settings</span><span>➔</span>
                 </div>
             </div>
         </div>
@@ -33,8 +30,7 @@
         <div id="prayerTimesPage" class="page hidden">
             <div class="back-btn" onclick="showPage('homePage')">← Back</div>
             <h2 style="margin-bottom:20px; color:var(--accent);">Casablanca Times</h2>
-            <div id="prayer-list">
-                </div>
+            <div id="prayer-list"></div>
         </div>
 
         <div id="adhanLibraryPage" class="page hidden">
@@ -48,21 +44,19 @@
             <h2 style="margin-bottom:20px; color:var(--accent);">Lock Duration</h2>
             <div class="menu-item">
                 <span>Minutes to Lock:</span>
-                <input type="number" id="lockInput" value="15" style="width:50px; background:none; border:1px solid var(--accent); color:white; text-align:center;">
+                <input type="number" id="lockInput" value="15" style="width:60px; background:none; border:1px solid var(--accent); color:white; text-align:center;">
             </div>
-            <button onclick="saveSettings()" style="width:100%; margin-top:20px; padding:15px; background:var(--accent); border:none; border-radius:10px; font-weight:bold;">Save Changes</button>
+            <button onclick="saveSettings()" style="width:100%; margin-top:20px; padding:15px; background:var(--accent); border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Save Changes</button>
         </div>
 
         <div id="lockScreen" class="lock-overlay hidden">
             <div class="lock-time">PRAYER</div>
             <h1 id="lockPrayerName">ADHAN</h1>
             <p style="margin-top:20px; color:#a1a1aa;">Tap anywhere to stop & dismiss</p>
-            <div style="margin-top:40px; font-size: 3rem;">🌙</div>
         </div>
 
         <audio id="adhanPlayer" preload="auto"></audio>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
