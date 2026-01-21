@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PrayerFlow Casablanca</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="page-home" class="page">
+        <header class="home-header">
+            <h1 id="main-clock">00:00</h1>
+            <p id="main-date">--</p>
+        </header>
+
+        <div class="menu-lines">
+            <div class="line-item" onclick="showPage('page-times')">
+                <span class="icon">🕌</span>
+                <span class="text">Prayer Times</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="line-item" onclick="showPage('page-adhan')">
+                <span class="icon">🔊</span>
+                <span class="text">Adhan Library</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="line-item" onclick="showPage('page-settings')">
+                <span class="icon">⚙️</span>
+                <span class="text">Lock Settings</span>
+                <span class="arrow">›</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-adhan" class="page hidden">
+        <div class="header-bar">
+            <button onclick="showPage('page-home')">‹ Back</button>
+            <h2>Adhan Voice</h2>
+        </div>
+        <div class="list-content" id="adhan-list">
+            </div>
+    </div>
+
+    <div id="page-times" class="page hidden">
+        <div class="header-bar">
+            <button onclick="showPage('page-home')">‹ Back</button>
+            <h2>Casablanca</h2>
+        </div>
+        <div id="prayer-list" class="list-content"></div>
+    </div>
+
+    <div id="page-settings" class="page hidden">
+        <div class="header-bar">
+            <button onclick="showPage('page-home')">‹ Back</button>
+            <h2>Configuration</h2>
+        </div>
+        <div class="settings-box">
+            <label>Lock Screen Duration</label>
+            <input type="range" id="lockRange" min="10" max="30" step="5" value="15" oninput="updateLockLabel(this.value)">
+            <p><span id="lockVal">15</span> Minutes</p>
+            <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+        </div>
+    </div>
+
+    <div id="lockScreen" class="lock-overlay hidden" onclick="dismissLock()">
+        <div class="lock-wrap">
+            <h1 id="lockClock">00:00</h1>
+            <h2 id="lockPrayerName">PRAYER</h2>
+            <p>Tap anywhere to stop Adhan & Dismiss</p>
+            <div class="pulse-icon">🌙</div>
+        </div>
+    </div>
+
+    <audio id="adhanPlayer"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
