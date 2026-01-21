@@ -9,7 +9,8 @@ const adhanLibrary = [
 let state = {
     lockDuration: localStorage.getItem('lockTime') || 15,
     selectedAdhan: localStorage.getItem('adhanUrl') || adhanLibrary[0].url,
-    todayTimes: null
+    todayTimes: null,
+    isLocked: false // Start unlocked
 };
 
 function showPage(id) {
@@ -19,16 +20,14 @@ function showPage(id) {
 
 function updateClock() {
     const now = new Date();
-    // Format time to HH:mm (e.g., 18:45)
     const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     
     document.getElementById('main-clock').textContent = timeStr;
     document.getElementById('main-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     
-    // ONLY lock if the current time matches a prayer time EXACTLY
+    // Only trigger lock if the time matches EXACTLY
     if (state.todayTimes) {
         Object.entries(state.todayTimes).forEach(([name, time]) => {
-            // This ensures it only pops up at the exact minute of Maghrib, Isha, etc.
             if (timeStr === time && !state.isLocked) {
                 triggerLock(name);
             }
@@ -50,6 +49,7 @@ async function fetchTimes() {
         renderTimes();
     } catch (e) { console.error("Network error"); }
 }
+
 function renderTimes() {
     const container = document.getElementById('prayer-list');
     container.innerHTML = Object.entries(state.todayTimes).map(([name, time]) => `
@@ -59,6 +59,7 @@ function renderTimes() {
         </div>
     `).join('');
 }
+
 function renderAdhanList() {
     const container = document.getElementById('adhan-list');
     container.innerHTML = adhanLibrary.map(adhan => `
@@ -74,22 +75,17 @@ function selectAdhan(url) {
     localStorage.setItem('adhanUrl', url);
     renderAdhanList();
 }
+
 function triggerLock(name) {
     state.isLocked = true;
-    const lockScreen = document.getElementById('lockScreen');
-    lockScreen.classList.remove('hidden');
+    document.getElementById('lockScreen').classList.remove('hidden');
     document.getElementById('lockPrayerName').textContent = name.toUpperCase();
     
-    // Play Adhan
     const player = document.getElementById('adhanPlayer');
     player.src = state.selectedAdhan;
-    player.play().catch(e => console.log("Click the screen first to allow sound!"));
-    
-    // Automatically unlock after your "Lock Screen Duration" (e.g., 15 mins)
-    setTimeout(() => {
-        dismissLock();
-    }, state.lockDuration * 60000); 
+    player.play().catch(e => console.log("Tap screen to enable audio"));
 }
+
 function dismissLock() {
     state.isLocked = false;
     document.getElementById('lockScreen').classList.add('hidden');
@@ -97,14 +93,10 @@ function dismissLock() {
     player.pause();
     player.currentTime = 0;
 }
-function updateLockLabel(val) { document.getElementById('lockVal').textContent = val; }
-function saveSettings() {
-    state.lockDuration = document.getElementById('lockRange').value;
-    localStorage.setItem('lockTime', state.lockDuration);
-    alert("Saved!");
-    showPage('page-home');
-}
-// Start
+
+// Start everything
 setInterval(updateClock, 1000);
 fetchTimes();
 renderAdhanList();
+// Force unlock on first load
+dismissLock();
