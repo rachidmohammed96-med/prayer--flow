@@ -10,8 +10,13 @@ let state = {
     lockDuration: localStorage.getItem('lockTime') || 15,
     selectedAdhan: localStorage.getItem('adhanUrl') || adhanLibrary[0].url,
     todayTimes: null,
-    isLocked: false // Start unlocked
+    isLocked: false 
 };
+
+// Force the lock screen to be hidden at the very beginning
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('lockScreen').classList.add('hidden');
+});
 
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
@@ -25,7 +30,7 @@ function updateClock() {
     document.getElementById('main-clock').textContent = timeStr;
     document.getElementById('main-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     
-    // Only trigger lock if the time matches EXACTLY
+    // Check if current time matches a prayer time EXACTLY
     if (state.todayTimes) {
         Object.entries(state.todayTimes).forEach(([name, time]) => {
             if (timeStr === time && !state.isLocked) {
@@ -47,11 +52,12 @@ async function fetchTimes() {
             Isha: json.data.timings.Isha
         };
         renderTimes();
-    } catch (e) { console.error("Network error"); }
+    } catch (e) { console.error("API error"); }
 }
 
 function renderTimes() {
     const container = document.getElementById('prayer-list');
+    if(!container) return;
     container.innerHTML = Object.entries(state.todayTimes).map(([name, time]) => `
         <div class="line-item">
             <span class="text">${name}</span>
@@ -62,6 +68,7 @@ function renderTimes() {
 
 function renderAdhanList() {
     const container = document.getElementById('adhan-list');
+    if(!container) return;
     container.innerHTML = adhanLibrary.map(adhan => `
         <div class="line-item" onclick="selectAdhan('${adhan.url}')">
             <span class="text">${adhan.name}</span>
@@ -83,7 +90,7 @@ function triggerLock(name) {
     
     const player = document.getElementById('adhanPlayer');
     player.src = state.selectedAdhan;
-    player.play().catch(e => console.log("Tap screen to enable audio"));
+    player.play().catch(e => console.log("User must tap screen first"));
 }
 
 function dismissLock() {
@@ -94,9 +101,6 @@ function dismissLock() {
     player.currentTime = 0;
 }
 
-// Start everything
 setInterval(updateClock, 1000);
 fetchTimes();
 renderAdhanList();
-// Force unlock on first load
-dismissLock();
