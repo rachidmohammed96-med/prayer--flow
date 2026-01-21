@@ -16,11 +16,15 @@
 
             <div class="menu-grid">
                 <div class="menu-item" onclick="showPage('prayerTimesPage')">
-                    <span class="text">Prayer Times</span>
+                    <span class="text">🕌 Prayer Times</span>
                     <span class="icon">➔</span>
                 </div>
                 <div class="menu-item" onclick="showPage('adhanLibraryPage')">
-                    <span class="text">Adhan Library</span>
+                    <span class="text">📢 Adhan Library</span>
+                    <span class="icon">➔</span>
+                </div>
+                <div class="menu-item" onclick="showPage('settingsPage')">
+                    <span class="text">⚙️ Lock Settings</span>
                     <span class="icon">➔</span>
                 </div>
             </div>
@@ -28,16 +32,25 @@
 
         <div id="prayerTimesPage" class="page hidden">
             <div class="back-btn" onclick="showPage('homePage')">← Back</div>
-            <h2 style="margin-bottom:20px;">Casablanca Times</h2>
+            <h2 style="margin-bottom:20px; color:var(--accent);">Casablanca Times</h2>
             <div id="prayer-list">
                 </div>
         </div>
 
         <div id="adhanLibraryPage" class="page hidden">
             <div class="back-btn" onclick="showPage('homePage')">← Back</div>
-            <h2 style="margin-bottom:20px;">Select Adhan</h2>
-            <div id="adhan-list">
-                </div>
+            <h2 style="margin-bottom:20px; color:var(--accent);">Select Adhan</h2>
+            <div id="adhan-list"></div>
+        </div>
+
+        <div id="settingsPage" class="page hidden">
+            <div class="back-btn" onclick="showPage('homePage')">← Back</div>
+            <h2 style="margin-bottom:20px; color:var(--accent);">Lock Duration</h2>
+            <div class="menu-item">
+                <span>Minutes to Lock:</span>
+                <input type="number" id="lockInput" value="15" style="width:50px; background:none; border:1px solid var(--accent); color:white; text-align:center;">
+            </div>
+            <button onclick="saveSettings()" style="width:100%; margin-top:20px; padding:15px; background:var(--accent); border:none; border-radius:10px; font-weight:bold;">Save Changes</button>
         </div>
 
         <div id="lockScreen" class="lock-overlay hidden">
@@ -51,14 +64,5 @@
     </div>
 
     <script src="script.js"></script>
-    <script>
-        // Emergency stop for the black screen on first load
-        document.body.addEventListener('click', function() {
-            const lock = document.getElementById('lockScreen');
-            if (!lock.classList.contains('hidden')) {
-                dismissLock();
-            }
-        }, { once: false });
-    </script>
 </body>
 </html>
