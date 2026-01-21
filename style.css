@@ -1,0 +1,55 @@
+:root {
+    --bg: #0b0f19;
+    --card: #161b2a;
+    --accent: #c9a050; /* Gold */
+    --text: #ffffff;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, system-ui, sans-serif;
+    margin: 0;
+    overflow: hidden;
+}
+
+.page { padding: 25px; height: 100vh; box-sizing: border-box; }
+.hidden { display: none; }
+
+.home-header { text-align: center; padding: 60px 0; }
+#main-clock { font-size: 4.5rem; margin: 0; color: var(--accent); }
+
+.menu-lines { background: var(--card); border-radius: 20px; overflow: hidden; }
+.line-item {
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #2d3748;
+    cursor: pointer;
+}
+
+.line-item .text { flex-grow: 1; font-weight: 500; font-size: 1.1rem; }
+.icon { margin-right: 15px; font-size: 1.4rem; }
+.arrow { color: #4a5568; }
+
+.header-bar { display: flex; align-items: center; margin-bottom: 30px; }
+.header-bar button { background: none; border: none; color: var(--accent); font-size: 1.1rem; }
+
+.settings-box { text-align: center; background: var(--card); padding: 30px; border-radius: 20px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+
+.lock-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(11, 15, 25, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+}
+
+.lock-wrap { text-align: center; }
+.pulse-icon { font-size: 4rem; animation: pulse 2s infinite; margin-top: 20px; }
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
