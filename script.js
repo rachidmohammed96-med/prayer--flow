@@ -1,108 +1,56 @@
-const adhanLibrary = [
-    { name: "Makkah", url: "https://www.islamcan.com/common/adhan/makkah.mp3" },
-    { name: "Madinah", url: "https://www.islamcan.com/common/adhan/madinah.mp3" },
-    { name: "Al-Aqsa", url: "https://www.islamcan.com/common/adhan/alaqsa.mp3" }
-];
-
-let state = {
-    selectedAdhan: localStorage.getItem('adhanUrl') || adhanLibrary[0].url,
-    todayTimes: null,
-    isLocked: false 
-};
-
-const player = document.getElementById('adhanPlayer');
-
-// 1. Fixed Sound Unlock for Mobile
-function initApp() {
-    // Play a tiny base64 silent beep to unlock the audio channel
-    player.src = "data:audio/wav;base64,UklGRigAAABXQVZFWm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-    player.play().then(() => {
-        player.pause();
-        document.getElementById('start-overlay').classList.add('hidden');
-        fetchTimes(); // Load everything else after unlock
-    }).catch(err => {
-        alert("Please tap firmly and ensure your volume is turned UP.");
-    });
+:root {
+    --bg: #000000;
+    --card: #1c1c1e;
+    --accent: #d4af37; /* Gold for a cleaner look */
+    --text: #ffffff;
 }
 
-// 2. Navigation
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
+body {
+    margin: 0; font-family: -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; width: 100vw; overflow: hidden;
 }
 
-// 3. Updated Date and Clock
-function updateClock() {
-    const now = new Date();
-    document.getElementById('main-clock').textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    
-    // Fix: This updates the "Loading" text immediately
-    document.getElementById('main-date').textContent = now.toLocaleDateString('en-US', { 
-        weekday: 'long', month: 'short', day: 'numeric' 
-    });
-    
-    if (state.todayTimes) {
-        const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].forEach(name => {
-            if (timeStr === state.todayTimes[name] && !state.isLocked) triggerLock(name);
-        });
-    }
+.page { 
+    padding: 20px; height: 100vh; display: flex; 
+    flex-direction: column; box-sizing: border-box;
 }
 
-async function fetchTimes() {
-    try {
-        const res = await fetch('https://api.aladhan.com/v1/timings?latitude=33.5731&longitude=-7.5898&method=3');
-        const json = await res.json();
-        state.todayTimes = json.data.timings;
-        renderTimes();
-        renderAdhanList();
-    } catch (e) { console.error("API Error"); }
+.hidden { display: none !important; }
+
+.header { text-align: center; margin-bottom: 20px; }
+#main-clock { font-size: 4rem; margin: 0; font-weight: 200; }
+#main-date { color: var(--accent); opacity: 0.8; }
+
+.status-tag { 
+    font-size: 0.7rem; background: #222; padding: 4px 10px; 
+    border-radius: 20px; display: inline-block; margin-top: 10px; color: #555;
 }
 
-// 4. Lock Screen Hold (5 Seconds)
-function triggerLock(prayerName) {
-    state.isLocked = true;
-    document.getElementById('lockScreen').classList.remove('hidden');
-    document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
-    player.src = state.selectedAdhan;
-    player.play().catch(e => console.log("Sound blocked"));
+#prayer-list-scroll, #adhan-list-scroll {
+    flex: 1; overflow-y: auto; margin-bottom: 20px;
 }
 
-let holdTimer;
-const lockEl = document.getElementById('lockScreen');
-
-lockEl.addEventListener('touchstart', () => {
-    player.pause(); // Tap stops music
-    holdTimer = setTimeout(() => {
-        state.isLocked = false;
-        lockEl.classList.add('hidden');
-    }, 5000); // 5s Hold
-});
-lockEl.addEventListener('touchend', () => clearTimeout(holdTimer));
-
-// 5. Library Selection
-function selectAdhan(url) {
-    state.selectedAdhan = url;
-    localStorage.setItem('adhanUrl', url);
-    player.src = url;
-    player.play().then(() => setTimeout(() => player.pause(), 5000));
-    renderAdhanList();
+.line-item {
+    background: var(--card); padding: 20px; border-radius: 15px;
+    display: flex; justify-content: space-between; margin-bottom: 10px;
+    border: 1px solid #2c2c2e;
 }
 
-function renderTimes() {
-    const list = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
-    document.getElementById('prayer-list').innerHTML = list.map(n => `
-        <div class="line-item"><span>${n}</span><span>${state.todayTimes[n]}</span></div>
-    `).join('');
+.nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+button { 
+    background: var(--card); color: white; border: none; padding: 18px; 
+    border-radius: 12px; font-size: 1rem;
 }
 
-function renderAdhanList() {
-    document.getElementById('adhan-list').innerHTML = adhanLibrary.map(a => `
-        <div class="line-item" onclick="selectAdhan('${a.url}')">
-            <span>${a.name}</span><span>${state.selectedAdhan === a.url ? '✅' : ''}</span>
-        </div>
-    `).join('');
+.primary-btn { background: var(--accent); color: black; font-weight: bold; width: 100%; margin-top: 20px;}
+
+/* Lock Screen */
+#lockScreen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: black; z-index: 10000; display: flex; 
+    align-items: center; justify-content: center; text-align: center;
 }
 
-setInterval(updateClock, 1000);
-updateClock(); // Run immediately so 'Loading' disappears
+.lock-timer { color: var(--accent); font-size: 1.2rem; margin: 20px 0; }
+.instruction { opacity: 0.4; font-size: 0.8rem; position: absolute; bottom: 40px; }
