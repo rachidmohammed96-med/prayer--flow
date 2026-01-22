@@ -6,42 +6,58 @@
 }
 
 body {
-    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--text); overflow: hidden;
+    margin: 0; font-family: -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; width: 100vw; overflow: hidden;
 }
 
-.page { padding: 20px; height: 100vh; display: flex; flex-direction: column; }
+.page { 
+    padding: 15px; 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    box-sizing: border-box;
+}
+
 .hidden { display: none !important; }
 
-.header { text-align: center; margin: 40px 0; }
-#main-clock { font-size: 4rem; margin: 0; font-weight: 200; }
+.header { text-align: center; margin: 10px 0 20px 0; }
+#main-clock { font-size: 3.5rem; margin: 0; font-weight: 200; }
+#main-date { color: var(--accent); margin-top: 5px; font-size: 1.1rem; }
 
-.line-item {
-    background: var(--card); padding: 20px; border-radius: 15px;
-    display: flex; justify-content: space-between; margin-bottom: 10px;
-    border: 1px solid #333;
+/* Fixed: Scrollable area for prayer times */
+#prayer-list-scroll, #adhan-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
 }
 
-.nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-bottom: 20px; }
+.line-item {
+    background: var(--card); padding: 18px; border-radius: 12px;
+    display: flex; justify-content: space-between; margin-bottom: 8px;
+    border: 1px solid #2c2c2e;
+}
+
+.nav-grid { 
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; 
+    padding-bottom: env(safe-area-inset-bottom); /* Fixes notch overlap */
+}
+
 button { 
-    background: var(--card); color: white; border: none; padding: 20px; 
+    background: var(--card); color: white; border: none; padding: 15px; 
     border-radius: 12px; font-size: 1rem; cursor: pointer;
 }
 
-.primary-btn { background: var(--accent); width: 100%; margin-top: 20px; }
+.primary-btn { background: var(--accent); width: 100%; font-weight: bold; }
 
-/* Lock Screen Styling */
+.overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95); z-index: 10000; display: flex; align-items: center; justify-content: center;
+}
+.modal { background: #222; padding: 25px; border-radius: 20px; width: 85%; text-align: center; border: 1px solid #444; }
+
 #lockScreen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: black; z-index: 9999; display: flex; align-items: center; justify-content: center;
-    text-align: center;
+    flex-direction: column;
 }
-
-.instruction { margin-top: 50px; opacity: 0.5; font-size: 0.9rem; }
-
-/* Overlay Styling */
-.overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center;
-}
-.modal { background: #222; padding: 30px; border-radius: 20px; width: 80%; text-align: center; }
