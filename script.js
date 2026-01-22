@@ -5,7 +5,6 @@ const adhanLibrary = [
 ];
 
 let state = {
-    lockDuration: localStorage.getItem('lockTime') || 15,
     selectedAdhan: localStorage.getItem('adhanUrl') || adhanLibrary[0].url,
     todayTimes: null,
     isLocked: false 
@@ -13,23 +12,16 @@ let state = {
 
 const player = document.getElementById('adhanPlayer');
 
-// 1. INIT APP (The Speaker Wakeup)
+// THIS IS THE KEY: It wakes up the audio engine on the first click
 function initApp() {
     player.src = state.selectedAdhan;
     player.play().then(() => {
         player.pause();
         document.getElementById('start-overlay').classList.add('hidden');
         fetchTimes();
-    }).catch(err => alert("Please ensure volume is up and try again."));
+    }).catch(() => alert("Tap again and make sure your volume is UP!"));
 }
 
-// 2. NAVIGATION
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-}
-
-// 3. PRAYER ENGINE
 async function fetchTimes() {
     const res = await fetch('https://api.aladhan.com/v1/timings?latitude=33.5731&longitude=-7.5898&method=3');
     const json = await res.json();
@@ -42,7 +34,6 @@ function updateClock() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     document.getElementById('main-clock').textContent = timeStr;
-    document.getElementById('main-date').textContent = now.toDateString();
     
     if (state.todayTimes) {
         ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].forEach(name => {
@@ -51,7 +42,6 @@ function updateClock() {
     }
 }
 
-// 4. LOCK SCREEN & 5 SEC HOLD
 function triggerLock(prayerName) {
     state.isLocked = true;
     document.getElementById('lockScreen').classList.remove('hidden');
@@ -60,25 +50,20 @@ function triggerLock(prayerName) {
     player.play();
 }
 
+// 5 SECOND HOLD TO UNLOCK
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
-const startAction = () => {
-    player.pause(); // Tap stops music
+lockEl.addEventListener('touchstart', () => {
+    player.pause(); // Tap stops adhan
     holdTimer = setTimeout(() => {
         state.isLocked = false;
         lockEl.classList.add('hidden');
-    }, 5000); // 5 Seconds hold
-};
+    }, 5000);
+});
 
-const endAction = () => clearTimeout(holdTimer);
+lockEl.addEventListener('touchend', () => clearTimeout(holdTimer));
 
-lockEl.addEventListener('touchstart', startAction);
-lockEl.addEventListener('touchend', endAction);
-lockEl.addEventListener('mousedown', startAction);
-lockEl.addEventListener('mouseup', endAction);
-
-// 5. SETTINGS & RENDER
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
@@ -103,10 +88,9 @@ function renderAdhanList() {
     `).join('');
 }
 
-function saveSettings() {
-    state.lockDuration = document.getElementById('lockInput').value;
-    localStorage.setItem('lockTime', state.lockDuration);
-    showPage('homePage');
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
 }
 
 setInterval(updateClock, 1000);
