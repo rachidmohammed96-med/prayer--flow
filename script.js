@@ -11,7 +11,26 @@ let state = {
     isLocked: false 
 };
 
+// Create the audio player
 const player = document.getElementById('adhanPlayer');
+
+// --- WAKE UP AUDIO (The Secret Fix) ---
+// This function "unlocks" the speakers as soon as the user touches anything.
+function unlockAudio() {
+    player.src = "https://www.soundjay.com/buttons/beep-01a.mp3"; // A tiny silent-ish beep
+    player.volume = 0; 
+    player.play().then(() => {
+        player.pause();
+        player.volume = 1;
+        console.log("Speakers are now AWAKE and ready.");
+    }).catch(e => console.log("Still waiting for user tap..."));
+    
+    // Remove the listener so it only runs once
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+}
+document.addEventListener('click', unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
 
 // --- NAVIGATION ---
 function showPage(id) {
@@ -39,20 +58,17 @@ async function fetchTimes() {
 function updateClock() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    
     document.getElementById('main-clock').textContent = timeStr;
     document.getElementById('main-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     
     if (state.todayTimes) {
         Object.entries(state.todayTimes).forEach(([name, time]) => {
-            if (timeStr === time && !state.isLocked) {
-                triggerLock(name);
-            }
+            if (timeStr === time && !state.isLocked) triggerLock(name);
         });
     }
 }
 
-// --- LOCK & AUDIO LOGIC ---
+// --- LOCK & 5-SECOND UNLOCK ---
 function triggerLock(prayerName) {
     state.isLocked = true;
     const lockScreen = document.getElementById('lockScreen');
@@ -60,30 +76,22 @@ function triggerLock(prayerName) {
     document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
     
     player.src = state.selectedAdhan;
-    player.play().catch(() => console.log("Tap screen to enable sound"));
+    player.play().catch(() => alert("Please tap screen to enable Adhan sound!"));
 }
 
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
-// 1. TOUCH START (Tap to stop sound, start 5s timer)
-const startAction = (e) => {
-    // Stop the Adhan sound immediately
-    player.pause();
-    player.currentTime = 0;
-
-    // Start 5-second countdown to unlock
-    holdTimer = setTimeout(() => {
+const startAction = () => {
+    player.pause(); // 1. Tap to stop sound
+    holdTimer = setTimeout(() => { // 2. Hold 5s to unlock
         state.isLocked = false;
         lockEl.classList.add('hidden');
-        alert("Unlocked");
+        alert("System Unlocked");
     }, 5000); 
 };
 
-// 2. TOUCH END (Cancel unlock if they let go early)
-const endAction = () => {
-    clearTimeout(holdTimer);
-};
+const endAction = () => clearTimeout(holdTimer);
 
 lockEl.addEventListener('mousedown', startAction);
 lockEl.addEventListener('touchstart', startAction);
@@ -94,23 +102,12 @@ lockEl.addEventListener('touchend', endAction);
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
-    
-    // Sound Test: plays for 1 second so you know it works
     player.src = url;
-    player.play();
-    setTimeout(() => player.pause(), 1000);
-    
+    player.play(); // This also acts as a wake-up for the audio
+    setTimeout(() => player.pause(), 2000);
     renderAdhanList();
 }
 
-function saveSettings() {
-    const val = document.getElementById('lockInput').value;
-    localStorage.setItem('lockTime', val);
-    alert("Settings Saved!");
-    showPage('homePage');
-}
-
-// --- RENDERING ---
 function renderTimes() {
     document.getElementById('prayer-list').innerHTML = Object.entries(state.todayTimes).map(([n, t]) => `
         <div class="line-item"><span>${n}</span><span style="color:var(--accent);">${t}</span></div>
