@@ -1,8 +1,8 @@
-// New, more reliable test links
+// Permanent, reliable Adhan links
 const adhanLibrary = [
-    { name: "Makkah", url: "https://prayersanddua.com/wp-content/uploads/2023/04/Adhan-Makkah.mp3" },
-    { name: "Madinah", url: "https://www.al-makkah.com/audio/adhan/madinah.mp3" },
-    { name: "Emergency Test", url: "https://actions.google.com/sounds/v1/alarms/beep_short.ogg" }
+    { name: "Makkah", url: "https://www.islamcan.com/common/adhan/makkah.mp3" },
+    { name: "Madinah", url: "https://www.islamcan.com/common/adhan/madinah.mp3" },
+    { name: "Al-Aqsa", url: "https://www.islamcan.com/common/adhan/alaqsa.mp3" }
 ];
 
 let state = {
@@ -14,16 +14,18 @@ let state = {
 
 const player = document.getElementById('adhanPlayer');
 
-// --- THE FIX: FORCE UNLOCK AUDIO ENGINE ---
-function initAudio() {
-    player.src = "https://actions.google.com/sounds/v1/alarms/beep_short.ogg";
+// --- THE WAKE UP LOGIC ---
+function unlockAudio() {
+    player.src = state.selectedAdhan;
+    player.muted = true; 
     player.play().then(() => {
         player.pause();
-        console.log("Audio engine is awake!");
-    }).catch(e => console.log("Waiting for user tap..."));
-    document.removeEventListener('click', initAudio);
+        player.muted = false;
+        console.log("Audio Engine Ready");
+    });
+    document.removeEventListener('click', unlockAudio);
 }
-document.addEventListener('click', initAudio);
+document.addEventListener('click', unlockAudio);
 
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
@@ -43,7 +45,7 @@ async function fetchTimes() {
         };
         renderTimes();
         renderAdhanList();
-    } catch (e) { alert("Network Error: Cannot get prayer times."); }
+    } catch (e) { console.error("API Error"); }
 }
 
 function updateClock() {
@@ -59,21 +61,22 @@ function updateClock() {
     }
 }
 
+// --- LOCK & 5-SECOND UNLOCK ---
 function triggerLock(prayerName) {
     state.isLocked = true;
-    document.getElementById('lockScreen').classList.remove('hidden');
+    const lockScreen = document.getElementById('lockScreen');
+    lockScreen.classList.remove('hidden');
     document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
     
     player.src = state.selectedAdhan;
-    player.play().catch(e => alert("Please tap the screen to allow audio!"));
+    player.play().catch(e => console.log("Sound blocked by browser"));
 }
 
-// --- LOCK CONTROLS (Hold 5s) ---
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
 const startAction = () => {
-    player.pause(); // Stop sound on first tap
+    player.pause(); 
     holdTimer = setTimeout(() => {
         state.isLocked = false;
         lockEl.classList.add('hidden');
@@ -86,22 +89,18 @@ lockEl.addEventListener('touchend', endAction);
 lockEl.addEventListener('mousedown', startAction);
 lockEl.addEventListener('mouseup', endAction);
 
-// --- SELECTION LOGIC ---
+// --- SETTINGS ---
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
     
-    // Test the sound immediately
     player.src = url;
     player.load();
     player.play()
         .then(() => {
-            console.log("Playing test...");
-            setTimeout(() => player.pause(), 3000);
+            setTimeout(() => player.pause(), 5000); // Play for 5 seconds to test
         })
-        .catch(err => {
-            alert("Browser blocked sound. Tap anywhere on the screen first, then try again.");
-        });
+        .catch(e => alert("Please tap the screen first to enable sound!"));
     
     renderAdhanList();
 }
