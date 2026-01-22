@@ -8,7 +8,8 @@ let state = {
     lockDuration: localStorage.getItem('lockTime') || 15,
     selectedAdhan: localStorage.getItem('adhanUrl') || adhanLibrary[0].url,
     todayTimes: null,
-    isLocked: false 
+    isLocked: false,
+    audioEnabled: false
 };
 
 const player = document.getElementById('adhanPlayer');
@@ -34,7 +35,6 @@ function updateClock() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     document.getElementById('main-clock').textContent = timeStr;
-    document.getElementById('main-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     
     if (state.todayTimes) {
         Object.entries(state.todayTimes).forEach(([name, time]) => {
@@ -50,9 +50,9 @@ function triggerLock(prayerName) {
     document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
     
     player.src = state.selectedAdhan;
+    // We try to play, but if it fails, we show a button on the lock screen
     player.play().catch(() => {
-        // If it's still blocked, the user MUST tap the lock screen once to hear it
-        console.log("Automatic play blocked by browser.");
+        document.getElementById('lockPrayerName').innerHTML += "<br><button onclick='player.play()' style='margin-top:20px; padding:15px; background:white; color:black; border-radius:10px;'>TAP TO HEAR ADHAN</button>";
     });
 }
 
@@ -60,11 +60,13 @@ function triggerLock(prayerName) {
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
-const startHold = () => {
-    player.pause(); // Tap once to stop noise
+const startHold = (e) => {
+    player.pause(); 
     holdTimer = setTimeout(() => {
         state.isLocked = false;
         lockEl.classList.add('hidden');
+        // Reset the lock screen text for next time
+        document.getElementById('lockPrayerName').innerHTML = "";
     }, 5000);
 };
 const endHold = () => clearTimeout(holdTimer);
@@ -72,28 +74,25 @@ const endHold = () => clearTimeout(holdTimer);
 lockEl.addEventListener('touchstart', startHold);
 lockEl.addEventListener('touchend', endHold);
 
-// --- THE FIXED SELECTION LOGIC ---
+// --- THE NEW "SELECT" LOGIC ---
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
 
-    // 1. Prime the player
+    // FORCE LOAD
     player.src = url;
-    player.muted = true; 
+    player.load();
     
-    // 2. Start playing (Muted first to bypass the block)
-    player.play().then(() => {
-        // 3. If it works, unmute and play for 3 seconds
-        player.muted = false;
-        setTimeout(() => {
-            player.pause();
-            player.currentTime = 0;
-        }, 3000);
-    }).catch(err => {
-        // If the browser STILL blocks it, we show this simpler message
-        console.log("Audio Blocked: " + err);
-        alert("Please tap the 'Madinah' or 'Makkah' text one more time.");
-    });
+    // Most browsers WILL allow sound if the user clicked exactly on the list item
+    player.play()
+        .then(() => {
+            setTimeout(() => player.pause(), 4000);
+        })
+        .catch(err => {
+            console.log("Still blocked");
+            // If it's blocked, we tell the user to click specifically on the text
+            alert("Touch the name 'Makkah' or 'Madinah' very firmly.");
+        });
 
     renderAdhanList();
 }
