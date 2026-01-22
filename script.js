@@ -1,4 +1,3 @@
-// Permanent, reliable Adhan links
 const adhanLibrary = [
     { name: "Makkah", url: "https://www.islamcan.com/common/adhan/makkah.mp3" },
     { name: "Madinah", url: "https://www.islamcan.com/common/adhan/madinah.mp3" },
@@ -14,24 +13,31 @@ let state = {
 
 const player = document.getElementById('adhanPlayer');
 
-// --- THE WAKE UP LOGIC ---
-function unlockAudio() {
-    player.src = state.selectedAdhan;
-    player.muted = true; 
+// --- THE SECRET FIX: "PRIME" THE AUDIO ---
+// This function runs on your FIRST tap to "unlock" the speakers for the whole day.
+function unlockSpeakers() {
+    player.src = "https://www.soundjay.com/buttons/beep-01a.mp3"; // A short, safe sound
+    player.volume = 0.1; 
     player.play().then(() => {
         player.pause();
-        player.muted = false;
-        console.log("Audio Engine Ready");
-    });
-    document.removeEventListener('click', unlockAudio);
+        player.volume = 1.0;
+        console.log("Speakers are now UNLOCKED.");
+    }).catch(e => console.log("Still waiting for first tap..."));
+    
+    // Remove listeners so it only runs once
+    document.removeEventListener('click', unlockSpeakers);
+    document.removeEventListener('touchstart', unlockSpeakers);
 }
-document.addEventListener('click', unlockAudio);
+document.addEventListener('click', unlockSpeakers);
+document.addEventListener('touchstart', unlockSpeakers);
 
+// --- NAVIGATION ---
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
 }
 
+// --- PRAYER LOGIC ---
 async function fetchTimes() {
     try {
         const res = await fetch('https://api.aladhan.com/v1/timings?latitude=33.5731&longitude=-7.5898&method=3');
@@ -45,7 +51,7 @@ async function fetchTimes() {
         };
         renderTimes();
         renderAdhanList();
-    } catch (e) { console.error("API Error"); }
+    } catch (e) { console.error("Could not fetch times"); }
 }
 
 function updateClock() {
@@ -69,15 +75,18 @@ function triggerLock(prayerName) {
     document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
     
     player.src = state.selectedAdhan;
-    player.play().catch(e => console.log("Sound blocked by browser"));
+    player.play().catch(e => {
+        // Fallback: If it's still blocked, show a message
+        alert("Audio Blocked! Tap the screen to hear the Adhan.");
+    });
 }
 
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
 const startAction = () => {
-    player.pause(); 
-    holdTimer = setTimeout(() => {
+    player.pause(); // 1. Tap to stop sound
+    holdTimer = setTimeout(() => { // 2. Hold 5s to unlock
         state.isLocked = false;
         lockEl.classList.add('hidden');
     }, 5000); 
@@ -85,23 +94,18 @@ const startAction = () => {
 const endAction = () => clearTimeout(holdTimer);
 
 lockEl.addEventListener('touchstart', startAction);
-lockEl.addEventListener('touchend', endAction);
 lockEl.addEventListener('mousedown', startAction);
+lockEl.addEventListener('touchend', endAction);
 lockEl.addEventListener('mouseup', endAction);
 
 // --- SETTINGS ---
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
-    
     player.src = url;
-    player.load();
-    player.play()
-        .then(() => {
-            setTimeout(() => player.pause(), 5000); // Play for 5 seconds to test
-        })
-        .catch(e => alert("Please tap the screen first to enable sound!"));
-    
+    player.play().then(() => {
+        setTimeout(() => player.pause(), 3000); // Test for 3 seconds
+    }).catch(e => alert("Tap the screen once first, then try again!"));
     renderAdhanList();
 }
 
