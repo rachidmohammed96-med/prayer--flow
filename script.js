@@ -12,21 +12,41 @@ let state = {
 
 const player = document.getElementById('adhanPlayer');
 
-// IMPROVED INIT: Plays a short beep to "unlock" the browser
+// 1. Fixed Sound Unlock for Mobile
 function initApp() {
-    // 1. Set a short system beep as a test
-    player.src = "https://www.soundjay.com/buttons/beep-01a.mp3";
-    
+    // Play a tiny base64 silent beep to unlock the audio channel
+    player.src = "data:audio/wav;base64,UklGRigAAABXQVZFWm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
     player.play().then(() => {
-        // 2. If the beep works, the "door" is open. 
-        // We pause it and hide the overlay.
         player.pause();
         document.getElementById('start-overlay').classList.add('hidden');
-        fetchTimes();
-    }).catch((err) => {
-        // 3. If it still fails, we show this message
-        alert("Action Required: Please tap the button firmly to enable sound.");
+        fetchTimes(); // Load everything else after unlock
+    }).catch(err => {
+        alert("Please tap firmly and ensure your volume is turned UP.");
     });
+}
+
+// 2. Navigation
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+
+// 3. Updated Date and Clock
+function updateClock() {
+    const now = new Date();
+    document.getElementById('main-clock').textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    
+    // Fix: This updates the "Loading" text immediately
+    document.getElementById('main-date').textContent = now.toLocaleDateString('en-US', { 
+        weekday: 'long', month: 'short', day: 'numeric' 
+    });
+    
+    if (state.todayTimes) {
+        const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].forEach(name => {
+            if (timeStr === state.todayTimes[name] && !state.isLocked) triggerLock(name);
+        });
+    }
 }
 
 async function fetchTimes() {
@@ -39,47 +59,33 @@ async function fetchTimes() {
     } catch (e) { console.error("API Error"); }
 }
 
-function updateClock() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    document.getElementById('main-clock').textContent = timeStr;
-    
-    if (state.todayTimes) {
-        ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].forEach(name => {
-            if (timeStr === state.todayTimes[name] && !state.isLocked) triggerLock(name);
-        });
-    }
-}
-
+// 4. Lock Screen Hold (5 Seconds)
 function triggerLock(prayerName) {
     state.isLocked = true;
     document.getElementById('lockScreen').classList.remove('hidden');
     document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
     player.src = state.selectedAdhan;
-    player.play().catch(e => console.log("Autoplay blocked"));
+    player.play().catch(e => console.log("Sound blocked"));
 }
 
-// 5 SECOND HOLD LOGIC
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
-lockEl.addEventListener('touchstart', (e) => {
-    player.pause(); 
+lockEl.addEventListener('touchstart', () => {
+    player.pause(); // Tap stops music
     holdTimer = setTimeout(() => {
         state.isLocked = false;
         lockEl.classList.add('hidden');
-    }, 5000); 
+    }, 5000); // 5s Hold
 });
-
 lockEl.addEventListener('touchend', () => clearTimeout(holdTimer));
 
+// 5. Library Selection
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
     player.src = url;
-    player.play().then(() => {
-        setTimeout(() => player.pause(), 4000);
-    });
+    player.play().then(() => setTimeout(() => player.pause(), 5000));
     renderAdhanList();
 }
 
@@ -98,9 +104,5 @@ function renderAdhanList() {
     `).join('');
 }
 
-function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-}
-
 setInterval(updateClock, 1000);
+updateClock(); // Run immediately so 'Loading' disappears
