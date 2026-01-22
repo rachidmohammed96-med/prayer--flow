@@ -1,20 +1,18 @@
+// Reliable HTTPS links
 const adhanLibrary = [
     { name: "Makkah", url: "https://www.islamcan.com/common/adhan/makkah.mp3" },
-    { name: "Madinah", url: "https://www.islamcan.com/common/adhan/madinah.mp3" },
-    { name: "Al-Aqsa", url: "https://www.islamcan.com/common/adhan/alaqsa.mp3" }
+    { name: "Madinah", url: "https://www.islamcan.com/common/adhan/madinah.mp3" }
 ];
 
 let state = {
-    lockDuration: localStorage.getItem('lockTime') || 15,
     selectedAdhan: localStorage.getItem('adhanUrl') || adhanLibrary[0].url,
     todayTimes: null,
-    isLocked: false,
-    audioEnabled: false
+    isLocked: false 
 };
 
 const player = document.getElementById('adhanPlayer');
 
-// --- THE NAVIGATION ---
+// --- NAVIGATION ---
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
@@ -43,59 +41,56 @@ function updateClock() {
     }
 }
 
-// --- THE LOCK LOGIC ---
-function triggerLock(prayerName) {
-    state.isLocked = true;
-    document.getElementById('lockScreen').classList.remove('hidden');
-    document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
-    
+// --- SOUND TEST FUNCTION ---
+// Click this button on your phone to see if sound is even possible
+function testSound() {
     player.src = state.selectedAdhan;
-    // We try to play, but if it fails, we show a button on the lock screen
-    player.play().catch(() => {
-        document.getElementById('lockPrayerName').innerHTML += "<br><button onclick='player.play()' style='margin-top:20px; padding:15px; background:white; color:black; border-radius:10px;'>TAP TO HEAR ADHAN</button>";
+    player.play().then(() => {
+        alert("SOUND WORKING! Wait 3 seconds...");
+        setTimeout(() => player.pause(), 3000);
+    }).catch(err => {
+        alert("BROWSER STILL BLOCKING. Error: " + err.name);
     });
 }
 
-// --- GESTURE LOGIC (Hold 5s to unlock) ---
+// --- LOCK LOGIC ---
+function triggerLock(prayerName) {
+    state.isLocked = true;
+    const lockScreen = document.getElementById('lockScreen');
+    lockScreen.classList.remove('hidden');
+    document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
+    
+    player.src = state.selectedAdhan;
+    player.play().catch(() => {
+        // Create a button if it fails
+        const btn = document.createElement("button");
+        btn.innerText = "TAP TO ENABLE ADHAN";
+        btn.style.cssText = "margin-top:20px; padding:20px; background:gold; color:black; border:none; border-radius:10px; font-weight:bold;";
+        btn.onclick = () => player.play();
+        document.getElementById('lockScreen').appendChild(btn);
+    });
+}
+
+// --- 5 SECOND HOLD TO UNLOCK ---
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
-const startHold = (e) => {
-    player.pause(); 
+const startHold = () => {
+    player.pause(); // Tap stops music
     holdTimer = setTimeout(() => {
         state.isLocked = false;
         lockEl.classList.add('hidden');
-        // Reset the lock screen text for next time
-        document.getElementById('lockPrayerName').innerHTML = "";
-    }, 5000);
+        // Clear buttons
+        const btns = lockEl.getElementsByTagName('button');
+        while(btns[0]) btns[0].parentNode.removeChild(btns[0]);
+    }, 5000); // 5 Seconds
 };
-const endHold = () => clearTimeout(holdTimer);
+const stopHold = () => clearTimeout(holdTimer);
 
 lockEl.addEventListener('touchstart', startHold);
-lockEl.addEventListener('touchend', endHold);
-
-// --- THE NEW "SELECT" LOGIC ---
-function selectAdhan(url) {
-    state.selectedAdhan = url;
-    localStorage.setItem('adhanUrl', url);
-
-    // FORCE LOAD
-    player.src = url;
-    player.load();
-    
-    // Most browsers WILL allow sound if the user clicked exactly on the list item
-    player.play()
-        .then(() => {
-            setTimeout(() => player.pause(), 4000);
-        })
-        .catch(err => {
-            console.log("Still blocked");
-            // If it's blocked, we tell the user to click specifically on the text
-            alert("Touch the name 'Makkah' or 'Madinah' very firmly.");
-        });
-
-    renderAdhanList();
-}
+lockEl.addEventListener('touchend', stopHold);
+lockEl.addEventListener('mousedown', startHold);
+lockEl.addEventListener('mouseup', stopHold);
 
 function renderTimes() {
     document.getElementById('prayer-list').innerHTML = Object.entries(state.todayTimes).map(([n, t]) => `
@@ -110,6 +105,14 @@ function renderAdhanList() {
             <span>${state.selectedAdhan === a.url ? '✅' : ''}</span>
         </div>
     `).join('');
+}
+
+function selectAdhan(url) {
+    state.selectedAdhan = url;
+    localStorage.setItem('adhanUrl', url);
+    player.src = url;
+    player.play().then(() => setTimeout(() => player.pause(), 3000));
+    renderAdhanList();
 }
 
 setInterval(updateClock, 1000);
