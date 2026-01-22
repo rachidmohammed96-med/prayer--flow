@@ -1,8 +1,8 @@
-// I changed the links to a more reliable source for testing
+// New, more reliable test links
 const adhanLibrary = [
-    { name: "Adhan 1", url: "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg" }, // Test Sound (Birds)
-    { name: "Makkah", url: "https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3" }, // Test Sound (Bell)
-    { name: "Custom", url: "https://www.islamcan.com/common/adhan/makkah.mp3" }
+    { name: "Makkah", url: "https://prayersanddua.com/wp-content/uploads/2023/04/Adhan-Makkah.mp3" },
+    { name: "Madinah", url: "https://www.al-makkah.com/audio/adhan/madinah.mp3" },
+    { name: "Emergency Test", url: "https://actions.google.com/sounds/v1/alarms/beep_short.ogg" }
 ];
 
 let state = {
@@ -14,27 +14,22 @@ let state = {
 
 const player = document.getElementById('adhanPlayer');
 
-// --- THE WAKE UP LOGIC ---
-// This runs the moment you touch ANY part of the screen
-function forceUnlockAudio() {
-    player.src = state.selectedAdhan;
-    player.muted = true; // Start muted to bypass browser blocks
+// --- THE FIX: FORCE UNLOCK AUDIO ENGINE ---
+function initAudio() {
+    player.src = "https://actions.google.com/sounds/v1/alarms/beep_short.ogg";
     player.play().then(() => {
         player.pause();
-        player.muted = false; // Unmute for later
-        console.log("Audio Engine Ready");
-    });
-    document.removeEventListener('click', forceUnlockAudio);
+        console.log("Audio engine is awake!");
+    }).catch(e => console.log("Waiting for user tap..."));
+    document.removeEventListener('click', initAudio);
 }
-document.addEventListener('click', forceUnlockAudio);
+document.addEventListener('click', initAudio);
 
-// --- NAVIGATION ---
 function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
 }
 
-// --- PRAYER LOGIC ---
 async function fetchTimes() {
     try {
         const res = await fetch('https://api.aladhan.com/v1/timings?latitude=33.5731&longitude=-7.5898&method=3');
@@ -48,7 +43,7 @@ async function fetchTimes() {
         };
         renderTimes();
         renderAdhanList();
-    } catch (e) { console.error("API Error"); }
+    } catch (e) { alert("Network Error: Cannot get prayer times."); }
 }
 
 function updateClock() {
@@ -64,22 +59,21 @@ function updateClock() {
     }
 }
 
-// --- LOCK & 5-SECOND UNLOCK ---
 function triggerLock(prayerName) {
     state.isLocked = true;
-    const lockScreen = document.getElementById('lockScreen');
-    lockScreen.classList.remove('hidden');
+    document.getElementById('lockScreen').classList.remove('hidden');
     document.getElementById('lockPrayerName').textContent = prayerName.toUpperCase();
     
     player.src = state.selectedAdhan;
-    player.play().catch(e => alert("Tap screen to allow Adhan!"));
+    player.play().catch(e => alert("Please tap the screen to allow audio!"));
 }
 
+// --- LOCK CONTROLS (Hold 5s) ---
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
 
 const startAction = () => {
-    player.pause(); 
+    player.pause(); // Stop sound on first tap
     holdTimer = setTimeout(() => {
         state.isLocked = false;
         lockEl.classList.add('hidden');
@@ -87,22 +81,28 @@ const startAction = () => {
 };
 const endAction = () => clearTimeout(holdTimer);
 
-lockEl.addEventListener('mousedown', startAction);
 lockEl.addEventListener('touchstart', startAction);
-lockEl.addEventListener('mouseup', endAction);
 lockEl.addEventListener('touchend', endAction);
+lockEl.addEventListener('mousedown', startAction);
+lockEl.addEventListener('mouseup', endAction);
 
-// --- SETTINGS ---
+// --- SELECTION LOGIC ---
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
     
+    // Test the sound immediately
     player.src = url;
-    player.load(); // Force the browser to load the new file
-    player.play().catch(e => alert("Sound blocked by browser. Tap again."));
+    player.load();
+    player.play()
+        .then(() => {
+            console.log("Playing test...");
+            setTimeout(() => player.pause(), 3000);
+        })
+        .catch(err => {
+            alert("Browser blocked sound. Tap anywhere on the screen first, then try again.");
+        });
     
-    // Play for 3 seconds so you can hear it
-    setTimeout(() => player.pause(), 3000);
     renderAdhanList();
 }
 
