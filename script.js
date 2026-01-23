@@ -1,6 +1,7 @@
 const adhanLibrary = [
     { name: "Makkah", url: "https://www.islamcan.com/common/adhan/makkah.mp3" },
-    { name: "Madinah", url: "https://www.islamcan.com/common/adhan/madinah.mp3" }
+    { name: "Madinah", url: "https://www.islamcan.com/common/adhan/madinah.mp3" },
+    { name: "Al-Aqsa", url: "https://www.islamcan.com/common/adhan/alaqsa.mp3" }
 ];
 
 let state = {
@@ -8,31 +9,34 @@ let state = {
     selectedAdhan: localStorage.getItem('adhanUrl') || adhanLibrary[0].url,
     todayTimes: null,
     isLocked: false,
-    audioEnabled: false
+    audioReady: false
 };
 
 const player = document.getElementById('adhanPlayer');
 
-// UNLOCK AUDIO: Must happen on a user click
+// 1. ONE-TOUCH UNLOCK (Vital for Sound)
 document.addEventListener('click', () => {
-    if (state.audioEnabled) return;
-    player.src = "https://www.soundjay.com/buttons/beep-01a.mp3";
+    if (state.audioReady) return;
+    player.src = "data:audio/wav;base64,UklGRigAAABXQVZFWm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
     player.play().then(() => {
         player.pause();
-        state.audioEnabled = true;
-        document.getElementById('audio-hint').style.display = 'none';
+        state.audioReady = true;
+        document.getElementById('audio-status').textContent = "System Active ✅";
+        document.getElementById('audio-status').style.color = "#4cd964";
     });
 }, { once: true });
 
+// 2. TRIGGER: MANUAL SELECTION
 function selectAdhan(url) {
     state.selectedAdhan = url;
     localStorage.setItem('adhanUrl', url);
     player.src = url;
     player.play();
-    setTimeout(() => player.pause(), 5000); 
+    setTimeout(() => { if(!state.isLocked) player.pause(); }, 5000); 
     renderAdhanList();
 }
 
+// 3. TRIGGER: AUTOMATIC PRAYER TIME
 function updateClock() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -51,20 +55,24 @@ function triggerLock(pName) {
     document.getElementById('lockScreen').classList.remove('hidden');
     document.getElementById('lockPrayerName').textContent = pName.toUpperCase();
     player.src = state.selectedAdhan;
-    player.play().catch(e => console.log("Sound Blocked"));
+    player.play().catch(e => console.log("Audio Blocked"));
+    
+    // Automatic unlock after chosen duration
     setTimeout(unlock, state.lockDuration * 60000);
 }
 
+// GESTURES: Tap to stop, Hold 5s to Unlock
 let holdTimer;
 const lockEl = document.getElementById('lockScreen');
-const stopAndHold = () => {
-    player.pause();
-    holdTimer = setTimeout(unlock, 5000);
-};
 
-lockEl.addEventListener('touchstart', stopAndHold);
+function handleStart() {
+    player.pause(); // One tap stops the sound
+    holdTimer = setTimeout(unlock, 5000); // 5s Hold to unlock screen
+}
+
+lockEl.addEventListener('touchstart', handleStart);
 lockEl.addEventListener('touchend', () => clearTimeout(holdTimer));
-lockEl.addEventListener('mousedown', stopAndHold);
+lockEl.addEventListener('mousedown', handleStart);
 lockEl.addEventListener('mouseup', () => clearTimeout(holdTimer));
 
 function unlock() {
@@ -73,11 +81,13 @@ function unlock() {
 }
 
 async function fetchTimes() {
-    const res = await fetch('https://api.aladhan.com/v1/timings?latitude=33.5731&longitude=-7.5898&method=3');
-    const json = await res.json();
-    state.todayTimes = json.data.timings;
-    renderTimes();
-    renderAdhanList();
+    try {
+        const res = await fetch('https://api.aladhan.com/v1/timings?latitude=33.5731&longitude=-7.5898&method=3');
+        const json = await res.json();
+        state.todayTimes = json.data.timings;
+        renderTimes();
+        renderAdhanList();
+    } catch (e) { console.error("API Error"); }
 }
 
 function renderTimes() {
