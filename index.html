@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PrayerFlow</title>
+    <title>PrayerFlow Final</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,11 +12,15 @@
             <div class="header">
                 <h1 id="main-clock">00:00</h1>
                 <p id="main-date">Loading...</p>
-                <small id="audio-hint">Tap screen once to enable sound</small>
+                <p id="audio-status">⚠️ Tap Screen to Enable Sound</p>
             </div>
-            <div id="prayer-list-scroll"><div id="prayer-list"></div></div>
+            
+            <div id="prayer-list-container">
+                <div id="prayer-list"></div>
+            </div>
+
             <div class="nav-grid">
-                <button onclick="showPage('adhanPage')">🕌 Adhan</button>
+                <button onclick="showPage('adhanPage')">🕌 Library</button>
                 <button onclick="showPage('settingsPage')">⚙️ Settings</button>
             </div>
         </div>
@@ -24,26 +28,32 @@
         <div id="adhanPage" class="page hidden">
             <button class="back-btn" onclick="showPage('homePage')">← Back</button>
             <h2>Select Adhan</h2>
-            <div id="adhan-list"></div>
+            <div id="adhan-list-container">
+                <div id="adhan-list"></div>
+            </div>
         </div>
 
         <div id="settingsPage" class="page hidden">
             <button class="back-btn" onclick="showPage('homePage')">← Back</button>
-            <h2>Locker Time</h2>
-            <input type="number" id="lockInput" min="10" max="30" value="15">
-            <button onclick="saveSettings()" class="primary-btn">Save</button>
+            <h2>Locker Settings</h2>
+            <div class="setting-group">
+                <label>Minutes (10-30):</label>
+                <input type="number" id="lockInput" min="10" max="30" value="15">
+            </div>
+            <button onclick="saveSettings()" class="primary-btn">Save Changes</button>
         </div>
     </div>
 
     <div id="lockScreen" class="hidden">
         <div class="lock-content">
-            <h1 id="lockPrayerName">ADHAN</h1>
-            <p>Tap: Stop Sound | Hold 5s: Unlock</p>
+            <h2 id="lockPrayerName">PRAYER TIME</h2>
+            <div class="lock-icon">🕌</div>
+            <p>TAP: Stop Sound</p>
+            <p>HOLD 5s: Unlock Screen</p>
         </div>
     </div>
 
     <audio id="adhanPlayer" preload="auto"></audio>
-    
     <script src="script.js"></script>
 </body>
 </html>
