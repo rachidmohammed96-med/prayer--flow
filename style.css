@@ -1,13 +1,44 @@
 :root { --bg: #000; --card: #1c1c1e; --accent: #d4af37; --text: #fff; }
-body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
-.page { padding: 20px; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
+
+body { 
+    margin: 0; font-family: -apple-system, sans-serif; 
+    background: var(--bg); color: var(--text); 
+    height: 100vh; overflow: hidden; 
+}
+
+.page { 
+    display: flex; flex-direction: column; 
+    height: 100vh; padding: 20px; box-sizing: border-box; 
+}
+
 .hidden { display: none !important; }
-.header { text-align: center; margin-bottom: 20px; }
-#main-clock { font-size: 4.5rem; margin: 0; }
-#audio-hint { color: var(--accent); font-size: 0.8rem; }
-#prayer-list-scroll { flex: 1; overflow-y: auto; }
-.line-item { background: var(--card); padding: 18px; border-radius: 12px; display: flex; justify-content: space-between; margin-bottom: 8px; border: 1px solid #333; }
-.nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 10px; }
-button { background: var(--card); color: #fff; border: none; padding: 15px; border-radius: 12px; font-size: 1rem; }
-.primary-btn { background: var(--accent); color: #000; font-weight: bold; width: 100%; margin-top: 20px; }
-#lockScreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; display: flex; align-items: center; justify-content: center; text-align: center; flex-direction: column; }
+
+.header { text-align: center; margin-bottom: 15px; }
+#main-clock { font-size: 4rem; margin: 0; font-weight: 200; }
+#audio-status { color: var(--accent); font-size: 0.8rem; margin-top: 5px; }
+
+#prayer-list-container, #adhan-list-container { 
+    flex: 1; overflow-y: auto; margin-bottom: 15px; 
+}
+
+.line-item { 
+    background: var(--card); padding: 18px; border-radius: 12px; 
+    display: flex; justify-content: space-between; margin-bottom: 8px; 
+    border: 1px solid #333; 
+}
+
+.nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+button { 
+    background: var(--card); color: #fff; border: none; 
+    padding: 15px; border-radius: 12px; font-size: 1rem; 
+}
+
+.primary-btn { background: var(--accent); color: #000; font-weight: bold; width: 100%; }
+
+#lockScreen { 
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+    background: #000; z-index: 10000; display: flex; 
+    align-items: center; justify-content: center; text-align: center; 
+}
+
+.lock-content h2 { font-size: 2.5rem; color: var(--accent); }
